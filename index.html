@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan 6 Mois — Suivi</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1a9e6e;
+    --green-light: #e6f7f1;
+    --green-mid: #5DCAA5;
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --text: #1a1a18;
+    --text2: #6b6b67;
+    --text3: #a0a09c;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141412;
+      --surface: #1e1e1c;
+      --surface2: #272724;
+      --text: #f0ede8;
+      --text2: #9a9a96;
+      --text3: #606060;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.12);
+      --green-light: #0a2e20;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .top-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1.25rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .top-inner {
+    max-width: 680px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    gap: 12px;
+  }
+  .app-title { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .app-title span { color: var(--green); }
+  .prog-wrap { flex: 1; max-width: 180px; }
+  .prog-track { background: var(--surface2); border-radius: 999px; height: 5px; overflow: hidden; }
+  .prog-fill { background: var(--green); height: 5px; border-radius: 999px; transition: width 0.5s ease; }
+  .prog-label { font-size: 11px; color: var(--text2); margin-top: 3px; font-family: 'DM Mono', monospace; }
+
+  .container { max-width: 680px; margin: 0 auto; padding: 1.25rem; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .stat-card { background: var(--surface); border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 14px 16px; }
+  .stat-val { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); font-family: 'DM Mono', monospace; }
+  .stat-lbl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  .week-scroll { overflow-x: auto; scrollbar-width: none; margin-bottom: 1.25rem; }
+  .week-scroll::-webkit-scrollbar { display: none; }
+  .week-pills { display: flex; gap: 6px; padding-bottom: 2px; width: max-content; }
+  .wpill {
+    font-size: 12px; font-weight: 500;
+    padding: 5px 13px; border-radius: 999px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Mono', monospace;
+    white-space: nowrap;
+  }
+  .wpill:hover { border-color: var(--green); color: var(--green); }
+  .wpill.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .wpill.done { background: var(--green-light); color: var(--green); border-color: var(--green-mid); }
+  .wpill.partial { border-color: var(--green-mid); color: var(--green); }
+
+  .section-title {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text3);
+    margin-bottom: 0.75rem;
+  }
+
+  .day-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .day-card.done { border-color: var(--green-mid); }
+  .day-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px 0;
+  }
+  .day-label { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+  .day-label .wk { font-weight: 400; color: var(--text2); font-size: 13px; }
+  .badge {
+    font-size: 11px; font-weight: 500;
+    padding: 3px 10px; border-radius: 999px;
+  }
+  .badge-done { background: var(--green-light); color: var(--green); }
+  .badge-todo { background: var(--surface2); color: var(--text3); }
+
+  .meals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px 16px; }
+  .meal { background: var(--surface2); border-radius: var(--radius-sm); padding: 10px 11px; }
+  .meal-t { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); margin-bottom: 5px; }
+  .meal-v { font-size: 12px; color: var(--text); line-height: 1.45; }
+
+  .activity { display: flex; gap: 8px; padding: 0 16px 12px; }
+  .act { background: var(--surface2); border-radius: var(--radius-sm); padding: 10px 11px; }
+  .act.march { min-width: 90px; }
+  .act.exos { flex: 1; }
+  .act-t { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); margin-bottom: 5px; }
+  .act-v { font-size: 12px; color: var(--text); line-height: 1.45; }
+  .act-v .mins { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; display: block; color: var(--text); line-height: 1.2; }
+
+  .checks { display: flex; gap: 0; border-top: 1px solid var(--border); }
+  .chk {
+    flex: 1; padding: 11px 14px;
+    background: transparent;
+    border: none; border-right: 1px solid var(--border);
+    cursor: pointer; color: var(--text2);
+    font-size: 12px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    display: flex; align-items: center; gap: 7px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .chk:last-child { border-right: none; }
+  .chk:hover { background: var(--surface2); }
+  .chk.on { background: var(--green-light); color: var(--green); }
+  .chk .dot {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 1.5px solid currentColor;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .chk.on .dot { background: var(--green); border-color: var(--green); color: white; }
+
+  @media (max-width: 480px) {
+    .meals { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .stat-val { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-inner">
+    <div class="app-title">Plan <span>6 mois</span></div>
+    <div class="prog-wrap">
+      <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="prog-label" id="prog-label">0 / 180 jours</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-val" id="s-done">0</div><div class="stat-lbl">Complétés</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-streak">0</div><div class="stat-lbl">Jours d'affilée</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-pct">0%</div><div class="stat-lbl">Progression</div></div>
+  </div>
+
+  <div class="week-scroll"><div class="week-pills" id="week-pills"></div></div>
+
+  <div class="section-title" id="sec-title">Semaine 1</div>
+  <div id="days"></div>
+</div>
+
+<script>
+const meals = [
+  {pb:"2 œufs + 60g pain complet + café", dej:"Poulet grillé 150g + salade + 80g riz", din:"Thon salade + yaourt"},
+  {pb:"Yaourt grec 200g + avoine 40g + banane", dej:"Steak 5% 160g + légumes + PDT 100g", din:"Omelette 2 œufs + légumes"},
+  {pb:"Omelette légumes + 1 pomme", dej:"Poisson grillé 150g + légumes vapeur", din:"Poulet grillé + soupe"},
+  {pb:"Fromage blanc + amandes + fruit", dej:"Tajine poulet légumes (portion contrôlée)", din:"Salade composée + fromage blanc"},
+  {pb:"2 œufs durs + toast complet", dej:"Escalope dinde + quinoa 80g", din:"Poisson + légumes grillés"},
+];
+
+function getPhase(d) {
+  if (d <= 28) return {march:45, exo:"3× : 15 squats, 10 fentes, gainage 30s"};
+  if (d <= 56) return {march:60, exo:"3× : 20 squats, 15 fentes, gainage 40s"};
+  if (d <= 112) return {march:75, exo:"4× : 25 squats, 20 fentes, pont ×20, gainage 45s"};
+  return {march:90, exo:"4× : 30 squats, 20 fentes, pont ×25, gainage 60s + marche"};
+}
+
+const PLAN = [];
+for (let d = 1; d <= 180; d++) {
+  const m = meals[(d-1) % 5];
+  const ph = getPhase(d);
+  PLAN.push({day:d, week:Math.ceil(d/7), ...m, march:ph.march, exo:ph.exo});
+}
+
+const KEY = 'plan6mois_v2';
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY)||'{}'); } catch(e){}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+function ds(d) { return state['d'+d] || {march:false,exo:false}; }
+function isDone(d) { const s=ds(d); return s.march && s.exo; }
+
+const START = new Date('2026-04-13');
+const today = new Date();
+const daysDiff = Math.floor((today - START) / (1000*60*60*24));
+const currentDay = Math.min(Math.max(daysDiff + 1, 1), 180);
+let week = Math.ceil(currentDay / 7);
+
+function toggle(d, key) {
+  if (!state['d'+d]) state['d'+d]={march:false,exo:false};
+  state['d'+d][key] = !state['d'+d][key];
+  save(); render();
+}
+
+function render() {
+  const done = PLAN.filter(p=>isDone(p.day)).length;
+  const pct = Math.round(done/180*100);
+  document.getElementById('s-done').textContent = done;
+  document.getElementById('s-pct').textContent = pct+'%';
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-label').textContent = done+' / 180 jours';
+  let streak=0;
+  for(let d=180;d>=1;d--){if(isDone(d))streak++;else break;}
+  document.getElementById('s-streak').textContent = streak;
+
+  const pills = document.getElementById('week-pills');
+  pills.innerHTML='';
+  for(let w=1;w<=26;w++){
+    const wdays=PLAN.filter(p=>p.week===w);
+    const cnt=wdays.filter(p=>isDone(p.day)).length;
+    const btn=document.createElement('button');
+    btn.className='wpill'+(w===week?' active':cnt===wdays.length?' done':cnt>0?' partial':'');
+    btn.textContent='S'+w;
+    btn.onclick=()=>{week=w;render();};
+    pills.appendChild(btn);
+  }
+
+  document.getElementById('sec-title').textContent='Semaine '+week;
+  const cont=document.getElementById('days');
+  cont.innerHTML='';
+  PLAN.filter(p=>p.week===week).forEach(p=>{
+    const s=ds(p.day);
+    const done=s.march&&s.exo;
+    const el=document.createElement('div');
+    el.className='day-card'+(done?' done':'');
+    el.innerHTML=`
+      <div class="day-head">
+        <div class="day-label">Jour ${p.day} <span class="wk">— Semaine ${p.week}</span></div>
+        <span class="badge ${done?'badge-done':'badge-todo'}">${done?'✓ Complété':'À faire'}</span>
+      </div>
+      <div class="meals">
+        <div class="meal"><div class="meal-t">Petit-déj</div><div class="meal-v">${p.pb}</div></div>
+        <div class="meal"><div class="meal-t">Déjeuner</div><div class="meal-v">${p.dej}</div></div>
+        <div class="meal"><div class="meal-t">Dîner</div><div class="meal-v">${p.din}</div></div>
+      </div>
+      <div class="activity">
+        <div class="act march"><div class="act-t">Marche</div><div class="act-v"><span class="mins">${p.march}</span>minutes</div></div>
+        <div class="act exos"><div class="act-t">Exercices du jour</div><div class="act-v">${p.exo}</div></div>
+      </div>
+      <div class="checks">
+        <button class="chk ${s.march?'on':''}" onclick="toggle(${p.day},'march')">
+          <span class="dot">${s.march?'✓':''}</span> Marche ${p.march} min
+        </button>
+        <button class="chk ${s.exo?'on':''}" onclick="toggle(${p.day},'exo')">
+          <span class="dot">${s.exo?'✓':''}</span> Exercices faits
+        </button>
+      </div>`;
+    cont.appendChild(el);
+  });
+
+  const activeBtn=document.querySelector('.wpill.active');
+  if(activeBtn) activeBtn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+}
+
+window.toggle=toggle;
+render();
+</script>
+</body>
+</html>
