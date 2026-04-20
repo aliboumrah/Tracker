@@ -161,6 +161,53 @@
     .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .stat-val { font-size: 20px; }
   }
+
+  .settings-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--border2);
+    background: transparent;
+    cursor: pointer; color: var(--text2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .settings-btn:hover { background: var(--surface2); }
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 200; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border-radius: var(--radius);
+    border: 1px solid var(--border2);
+    padding: 1.5rem; width: 320px; max-width: calc(100vw - 2rem);
+  }
+  .modal h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .modal p { font-size: 12px; color: var(--text2); margin-bottom: 1.25rem; line-height: 1.5; }
+  .modal label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); display: block; margin-bottom: 6px; }
+  .modal input[type=date] {
+    width: 100%; padding: 9px 12px;
+    border: 1px solid var(--border2); border-radius: var(--radius-sm);
+    background: var(--surface2); color: var(--text);
+    font-family: 'DM Mono', monospace; font-size: 13px;
+    margin-bottom: 1.25rem; color-scheme: light dark;
+  }
+  .modal-actions { display: flex; gap: 8px; }
+  .btn-cancel {
+    flex: 1; padding: 9px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border2); background: transparent;
+    color: var(--text2); font-size: 13px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-save {
+    flex: 1; padding: 9px; border-radius: var(--radius-sm);
+    border: none; background: var(--green);
+    color: white; font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-cancel:hover { background: var(--surface2); }
+  .btn-save:hover { opacity: 0.9; }
 </style>
 </head>
 <body>
@@ -168,6 +215,7 @@
 <div class="top-bar">
   <div class="top-inner">
     <div class="app-title">Plan <span>6 mois</span></div>
+    <button class="settings-btn" onclick="openSettings()" title="Paramètres">⚙</button>
     <div class="prog-wrap">
       <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
       <div class="prog-label" id="prog-label">0 / 180 jours</div>
@@ -218,11 +266,38 @@ function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catc
 function ds(d) { return state['d'+d] || {march:false,exo:false}; }
 function isDone(d) { const s=ds(d); return s.march && s.exo; }
 
-const START = new Date('2026-04-20');
-const today = new Date();
-const daysDiff = Math.floor((today - START) / (1000*60*60*24));
-const currentDay = Math.min(Math.max(daysDiff + 1, 1), 180);
-let week = Math.ceil(currentDay / 7);
+const SKEY = 'plan6mois_start';
+function getStart() {
+  const saved = localStorage.getItem(SKEY);
+  return saved ? new Date(saved) : new Date('2026-04-13');
+}
+function getCurrentWeek() {
+  const diff = Math.floor((new Date() - getStart()) / 86400000);
+  const day = Math.min(Math.max(diff + 1, 1), 180);
+  return Math.ceil(day / 7);
+}
+let week = getCurrentWeek();
+
+function openSettings() {
+  const d = getStart();
+  const iso = d.toISOString().slice(0,10);
+  document.getElementById('date-input').value = iso;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+function saveSettings() {
+  const val = document.getElementById('date-input').value;
+  if (!val) return;
+  localStorage.setItem(SKEY, val);
+  week = getCurrentWeek();
+  closeSettings();
+  render();
+}
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeSettings();
+});
 
 function toggle(d, key) {
   if (!state['d'+d]) state['d'+d]={march:false,exo:false};
@@ -293,5 +368,18 @@ function render() {
 window.toggle=toggle;
 render();
 </script>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2>Date de début</h2>
+    <p>Choisissez la date de démarrage de votre plan. La semaine affichée par défaut s'ajustera automatiquement.</p>
+    <label for="date-input">Date de début</label>
+    <input type="date" id="date-input">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeSettings()">Annuler</button>
+      <button class="btn-save" onclick="saveSettings()">Enregistrer</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
