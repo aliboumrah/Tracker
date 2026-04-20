@@ -218,7 +218,7 @@ function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catc
 function ds(d) { return state['d'+d] || {march:false,exo:false}; }
 function isDone(d) { const s=ds(d); return s.march && s.exo; }
 
-const START = new Date('2026-04-13');
+const START = new Date('2026-04-20');
 const today = new Date();
 const daysDiff = Math.floor((today - START) / (1000*60*60*24));
 const currentDay = Math.min(Math.max(daysDiff + 1, 1), 180);
