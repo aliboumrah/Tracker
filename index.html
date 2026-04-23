@@ -236,6 +236,19 @@
   <div id="days"></div>
 </div>
 
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2>Date de début</h2>
+    <p>Choisissez la date de démarrage de votre plan. La semaine affichée par défaut s'ajustera automatiquement.</p>
+    <label for="date-input">Date de début</label>
+    <input type="date" id="date-input">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeSettings()">Annuler</button>
+      <button class="btn-save" onclick="saveSettings()">Enregistrer</button>
+    </div>
+  </div>
+</div>
 <script>
 const meals = [
   {pb:"2 œufs + 60g pain complet + café", dej:"Poulet grillé 150g + salade + 80g riz", din:"Thon salade + yaourt"},
@@ -267,27 +280,21 @@ function ds(d) { return state['d'+d] || {march:false,exo:false}; }
 function isDone(d) { const s=ds(d); return s.march && s.exo; }
 
 const SKEY = 'plan6mois_start';
-function getCookie(name) {
-  const m = document.cookie.match('(?:^|;)\\s*' + name + '=([^;]*)');
-  return m ? decodeURIComponent(m[1]) : null;
-}
-function setCookie(name, value, days) {
-  const exp = new Date(Date.now() + days * 864e5).toUTCString();
-  document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + exp + '; path=/; SameSite=Lax';
-}
 function getStart() {
-  const saved = getCookie(SKEY);
-  return saved ? new Date(saved) : new Date('2026-04-13');
+  const saved = localStorage.getItem(SKEY);
+  return saved ? new Date(saved) : null;
 }
 function getCurrentWeek() {
-  const diff = Math.floor((new Date() - getStart()) / 86400000);
+  const start = getStart();
+  if (!start) return 1;
+  const diff = Math.floor((new Date() - start) / 86400000);
   const day = Math.min(Math.max(diff + 1, 1), 180);
   return Math.ceil(day / 7);
 }
 let week = getCurrentWeek();
 
 function openSettings() {
-  const d = getStart();
+  const d = getStart() || new Date();
   const iso = d.toISOString().slice(0,10);
   document.getElementById('date-input').value = iso;
   document.getElementById('modal-overlay').classList.add('open');
@@ -303,9 +310,7 @@ function saveSettings() {
   closeSettings();
   render();
 }
-document.getElementById('modal-overlay').addEventListener('click', function(e) {
-  if (e.target === this) closeSettings();
-});
+
 
 function toggle(d, key) {
   if (!state['d'+d]) state['d'+d]={march:false,exo:false};
@@ -375,20 +380,11 @@ function render() {
 }
 
 window.toggle=toggle;
+if (!localStorage.getItem(SKEY)) openSettings();
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeSettings();
+});
 render();
 </script>
-
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal">
-    <h2>Date de début</h2>
-    <p>Choisissez la date de démarrage de votre plan. La semaine affichée par défaut s'ajustera automatiquement.</p>
-    <label for="date-input">Date de début</label>
-    <input type="date" id="date-input">
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeSettings()">Annuler</button>
-      <button class="btn-save" onclick="saveSettings()">Enregistrer</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
